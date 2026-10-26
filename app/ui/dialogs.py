@@ -82,3 +82,66 @@ class ConnectionResultDialog:
         
         dialog.set_modal(True)
         dialog.show(parent)
+
+class EnterpriseDialog:
+    """Dialog for entering username and password (802.1X networks)"""
+
+    def __init__(self, parent, ssid: str, callback):
+        self.parent = parent
+        self.ssid = ssid
+        self.callback = callback
+        self._create_dialog()
+
+    def _create_dialog(self):
+        self.dialog_window = Gtk.Window()
+        self.dialog_window.set_title(f"Connect to {self.ssid}")
+        self.dialog_window.set_default_size(320, 200)
+        self.dialog_window.set_modal(True)
+        self.dialog_window.set_transient_for(self.parent)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        for side in ("top", "bottom", "start", "end"):
+            getattr(box, f"set_margin_{side}")(15)
+
+        title = Gtk.Label(label=f"Sign in to {self.ssid}")
+        title.set_halign(Gtk.Align.START)
+
+        self.username_entry = Gtk.Entry(placeholder_text="Username")
+        self.username_entry.connect("activate", lambda _: self.password_entry.grab_focus())
+
+        self.password_entry = Gtk.PasswordEntry(placeholder_text="Password")
+        self.password_entry.set_show_peek_icon(True)
+        self.password_entry.connect("activate", lambda _: self._on_connect_clicked(None))
+
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        button_box.set_halign(Gtk.Align.END)
+        button_box.set_margin_top(10)
+
+        cancel = Gtk.Button(label="Cancel")
+        cancel.connect("clicked", lambda _: self.dialog_window.destroy())
+
+        connect = Gtk.Button(label="Connect")
+        connect.add_css_class("suggested-action")
+        connect.connect("clicked", self._on_connect_clicked)
+
+        button_box.append(cancel)
+        button_box.append(connect)
+
+        box.append(title)
+        box.append(self.username_entry)
+        box.append(self.password_entry)
+        box.append(button_box)
+        self.dialog_window.set_child(box)
+
+    def _on_connect_clicked(self, button):
+        username = self.username_entry.get_text().strip()
+        password = self.password_entry.get_text()
+        if not username or not password:
+            return  # keep the dialog open until both are filled
+        self.dialog_window.destroy()
+        self.callback(username, password)
+
+    def show(self):
+        self.dialog_window.present()
+        self.username_entry.grab_focus()
+

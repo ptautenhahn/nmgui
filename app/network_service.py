@@ -165,21 +165,71 @@ class NetworkService:
             print(error_msg)
             return False, error_msg
     
+    # @staticmethod
+    # def connect_to_network(ssid: str, password: Optional[str] = None) -> Tuple[bool, str]:
+    #     """Connect to a network using improved connection method"""
+    #     try:
+    #         if password:
+    #             nmcli.device.wifi_connect(ssid, password)
+    #         else:
+    #             NmcliExtensions.connect_to_open_or_saved_wifi(nmcli.device, ssid)
+    #
+    #         return True, "Connected successfully"
+    #
+    #     except nmcli._exception.ConnectionActivateFailedException as e:
+    #         return False, f"Connection activation failed: {str(e)}"
+    #     except Exception as e:
+    #         return False, f"Connection error: {str(e)}"
+
     @staticmethod
-    def connect_to_network(ssid: str, password: Optional[str] = None) -> Tuple[bool, str]:
-        """Connect to a network using improved connection method"""
+    def connect_to_network(ssid: str, password: Optional[str] = None,
+                           username: Optional[str] = None) -> Tuple[bool, str]:
+        """Connect to a network (open, saved, WPA-PSK or WPA-Enterprise)"""
         try:
-            if password:
+            if username and password:
+                NetworkService._connect_enterprise(ssid, username, password)
+            elif password:
                 nmcli.device.wifi_connect(ssid, password)
             else:
                 NmcliExtensions.connect_to_open_or_saved_wifi(nmcli.device, ssid)
-            
+
             return True, "Connected successfully"
-            
+
         except nmcli._exception.ConnectionActivateFailedException as e:
             return False, f"Connection activation failed: {str(e)}"
         except Exception as e:
             return False, f"Connection error: {str(e)}"
+
+    @staticmethod
+    def _connect_enterprise(ssid: str, username: str, password: str,
+                            eap: str = "peap", phase2: str = "mschapv2") -> None:
+        """Create an 802.1X profile and activate it. Raises on failure."""
+        # Remove any stale/partial profile with the same name
+        try:
+            nmcli.connection.delete(ssid)
+        except Exception:
+            pass
+
+        options = {
+            "ssid": ssid,
+            "wifi-sec.key-mgmt": "wpa-eap",
+            "802-1x.eap": eap,
+            "802-1x.phase2-auth": phase2,
+            "802-1x.identity": username,
+            "802-1x.password": password,
+        }
+        nmcli.connection.add("wifi", options, name=ssid, autoconnect=True)
+
+        try:
+            nmcli.connection.up(ssid)
+        except Exception:
+            # Don't leave a broken profile behind, otherwise is_wifi_known()
+            # returns True next time and the dialog is skipped
+            try:
+                nmcli.connection.delete(ssid)
+            except Exception:
+                pass
+            raise
 
     @staticmethod
     def disconnect_network(ssid:str) -> Tuple[bool, str]: 

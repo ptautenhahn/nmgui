@@ -40,3 +40,9 @@ class NetworkInfo:
             mode=wifi_device.mode,
             security=wifi_device.security
         )
+    
+    @property
+    def is_enterprise(self) -> bool:
+        """True for WPA-Enterprise (802.1X) networks"""
+        return bool(self.security) and "802.1X" in self.security    
+
