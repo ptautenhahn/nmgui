@@ -122,17 +122,6 @@ class NetworkManagerWindow(Gtk.ApplicationWindow):
             next_child = child.get_next_sibling()
             self.content_box.remove(child)
             child = next_child
-    
-    # def _on_network_selected(self, network: NetworkInfo):
-    #     """Handle network selection for connection"""
-    #     if NetworkService.is_wifi_known(network.ssid):
-    #         self._connect_to_network(network.ssid)
-    #     elif network.requires_password:
-    #         dialog = PasswordDialog(self, network.ssid, 
-    #                               lambda password: self._connect_to_network(network.ssid, password))
-    #         dialog.show()
-    #     else:
-    #         self._connect_to_network(network.ssid)
    
     def _on_network_selected(self, network: NetworkInfo):
         """Handle network selection for connection"""
@@ -155,19 +144,6 @@ class NetworkManagerWindow(Gtk.ApplicationWindow):
     def _on_network_details(self, network: NetworkInfo):
         """Handle network details button click"""
         self._show_network_details(network)
-    
-    # def _connect_to_network(self, ssid: str, password: Optional[str] = None):
-    #     """Connect to a network"""
-    #     self.current_state = WiFiState.CONNECTING
-    #
-    #     def connect_thread():
-    #         success, message = NetworkService.connect_to_network(ssid, password)
-    #         GLib.idle_add(lambda: self._connection_complete(ssid, success, message))
-    #
-    #     import threading
-    #     thread = threading.Thread(target=connect_thread)
-    #     thread.daemon = True
-    #     thread.start()
    
     def _connect_to_network(self, ssid: str, password: Optional[str] = None,
                             username: Optional[str] = None):

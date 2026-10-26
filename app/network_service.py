@@ -164,22 +164,6 @@ class NetworkService:
             error_msg = f"Unexpected error forgetting network '{ssid}': {str(e)}"
             print(error_msg)
             return False, error_msg
-    
-    # @staticmethod
-    # def connect_to_network(ssid: str, password: Optional[str] = None) -> Tuple[bool, str]:
-    #     """Connect to a network using improved connection method"""
-    #     try:
-    #         if password:
-    #             nmcli.device.wifi_connect(ssid, password)
-    #         else:
-    #             NmcliExtensions.connect_to_open_or_saved_wifi(nmcli.device, ssid)
-    #
-    #         return True, "Connected successfully"
-    #
-    #     except nmcli._exception.ConnectionActivateFailedException as e:
-    #         return False, f"Connection activation failed: {str(e)}"
-    #     except Exception as e:
-    #         return False, f"Connection error: {str(e)}"
 
     @staticmethod
     def connect_to_network(ssid: str, password: Optional[str] = None,
